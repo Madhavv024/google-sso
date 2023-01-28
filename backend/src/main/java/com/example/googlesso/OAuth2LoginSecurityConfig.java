@@ -13,13 +13,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class OAuth2LoginSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests(authorizeRequests ->
-                        authorizeRequests
-                                .antMatchers("/", "/error", "/webjars/**").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .oauth2Login(withDefaults());
+
         return http.build();
     }
 }
