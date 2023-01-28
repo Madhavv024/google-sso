@@ -12,4 +12,6 @@ public class GoogleSSOApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GoogleSSOApplication.class, args);
 	}
+
+
 }

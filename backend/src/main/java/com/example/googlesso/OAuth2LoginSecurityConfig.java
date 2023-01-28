@@ -11,14 +11,15 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 public class OAuth2LoginSecurityConfig {
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(withDefaults())
-                .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().authenticated()
-                ).oauth2Client();
-
+        http
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests
+                                .antMatchers("/", "/error", "/webjars/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .oauth2Login(withDefaults());
         return http.build();
     }
 }
