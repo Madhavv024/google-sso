@@ -10,6 +10,6 @@ npm start
 ## Backend
 ```shell
 cd backend
-mvn clean install
-mvn spring-boot:run
+pip3 install -r requirements
+pip3 -m server
 ```
