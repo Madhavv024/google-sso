@@ -9,11 +9,26 @@ REGION = 'us-east-1'
 USERPOOL_ID = 'us-east-1_EnHJ08HZN'
 APP_CLIENT_ID = '6k9iq2mbm3nek03ikokhoergmk'
 
+
+# This is a middleware to remove the prefix from the request path.
+class RemovePrefixMiddleware(object):
+    def __init__(self, app, prefix='/master'):
+        self.app = app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+        request_uri = environ.get('PATH_INFO', '')
+        if request_uri.startswith(self.prefix):
+            environ['PATH_INFO'] = request_uri[len(self.prefix):]
+        return self.app(environ, start_response)
+
+
+
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+app.wsgi_app = RemovePrefixMiddleware(app.wsgi_app)
 
-
-@app.route('/api/v1/health')
+@app.route('/health')
 def health():
     return jsonify({'status': 'ok'})
 
@@ -69,15 +84,23 @@ def authenticate_google_sso():
 @app.route('/api/v1/authenticate')
 def index():
     # Extract the bearer token from the request headers
-
+    jwt_token = request.headers.get('Authorization').split()[1]
     # Authenticate the token with the Google SSO server
-    url = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + token
-    r = requests.get(url)
-    print(f'Google SSO server response: {r}')
-    if r.status_code != 200:
+    print(f'Bearer token: {jwt_token}')
+    try:
+        # Specify the CLIENT_ID of the app that accesses the backend:
+        client_id = "246380703851-q0oqjngtma7mnmm1p0f5l3po88uik65j.apps.googleusercontent.com"
+        id_info = id_token.verify_oauth2_token(jwt_token, requests.Request(), client_id)
+
+        # ID token is valid. Get the user's Google Account ID from the decoded token.
+        print(f'Email: {id_info["email"]}')
+        user_id = id_info['sub']
+        email_id = id_info['email']
+        print(f'User ID: {user_id}')
+        return user_id, email_id
+    except ValueError:
+        # Invalid token
         return "Authentication failed", 403
-    else:
-        return "Authentication successful", 200
 
 
 if __name__ == '__main__':
